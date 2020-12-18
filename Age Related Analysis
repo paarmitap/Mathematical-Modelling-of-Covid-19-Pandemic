@@ -1,0 +1,132 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+N = 1_000_000          # Population of city
+gamma = 1/ 14          # Takes average 14 days to recover
+delta = 1 / 6          # average incubation period of six days
+#alpha = 0.05            # mortality rate
+rho = 1/9               # 9 days from infection until death
+S0, E0, I0, R0, D0 = N-1, 1, 0, 0, 0  # initial conditions
+n=240                   # no. of days to be studied
+t=[x for x in range(n)]
+
+
+def RK4SIR(n, gamma, delta, rho, S0, I0, R0, E0, D0, dt = 1):   # rk4 function
+   
+  
+    S=np.zeros(n)
+    I=np.zeros(n)
+    R=np.zeros(n)
+    E=np.zeros(n)
+    D=np.zeros(n)
+    S[0],I[0],R[0],E[0],D[0]=S0,I0,R0,E0,D0
+    
+    
+    alpha_by_agegroup = {"0-29": 0.01, "30-59": 0.05, "60-89": 0.2, "89+": 0.3}
+    proportion_of_agegroup = {"0-29": 0.1, "30-59": 0.3, "60-89": 0.4, "89+": 0.2}
+    s = 1 #scaling factor
+    alpha_opt = sum(alpha_by_agegroup[i] * proportion_of_agegroup[i] for i in list(alpha_by_agegroup.keys())) #dictionary of age and mortality rate
+
+    
+    for i in range(0,n-1):
+        
+        
+  
+        R_0_start, k, x0, R_0_end = 5.0, 0.5, 40, 1
+
+        def logistic_R_0(i):
+            return (R_0_start-R_0_end) / (1 + np.exp(-k*(-i+x0))) + R_0_end
+        
+        def alpha(i):
+            return( s*I[i]/N + alpha_opt)
+
+        def beta(i):
+            return(logistic_R_0(i) * (gamma +alpha(i)))
+        
+        def dSdt(t, S, I):
+            return(-(beta(i)) * S * I / N)
+
+        def dEdt(t, S, I, E):
+            return ( (beta(i) * S * I / N) - delta * E)
+    
+        def dIdt(t, E, I):
+            return( delta * E - (1 - alpha(i)) * gamma * I - alpha(i) * rho * I)
+
+        def dRdt(t, I): 
+            return( (1 - alpha(i)) * gamma * I)
+    
+        def dDdt(t,I):
+            return( alpha(i) * rho * I)
+        
+        Si = S[i]
+        Ii = I[i]
+        Ri = R[i]
+        Ei = E[i]
+        Di = D[i]
+   
+    
+        S_k1 = dSdt(i, Si, Ii)
+        E_k1 = dEdt(i, Si, Ii, Ei)
+        I_k1 = dIdt(i, Ei, Ii)
+        R_k1 = dRdt(i, Ii)
+        D_k1 = dDdt(i, Ii)
+        
+        S_k2 = dSdt(i + dt / 2, Si + dt / 2 * S_k1, Ii + dt / 2 * I_k1)
+        E_k2 = dEdt(i + dt / 2, Si + dt / 2 * S_k1, Ii + dt / 2 * I_k1, Ei + dt / 2 * E_k1)
+        I_k2 = dIdt(i + dt / 2, Ei + dt / 2 * E_k1, Ii + dt / 2 * I_k1)
+        R_k2 = dRdt(i + dt / 2, Ii + dt / 2 * I_k1)
+        D_k2 = dDdt(i + dt / 2, Ii + dt / 2 * I_k1)
+    
+        S_k3 = dSdt(i + dt / 2, Si + dt / 2 * S_k2, Ii + dt / 2 * I_k2)
+        E_k3 = dEdt(i + dt / 2, Si + dt / 2 * S_k2, Ii + dt / 2 * I_k2, Ei + dt / 2 * E_k2)
+        I_k3 = dIdt(i + dt / 2, Ei + dt / 2 * E_k2, Ii + dt / 2 * I_k2)
+        R_k3 = dRdt(i + dt / 2, Ii + dt / 2 * I_k2)
+        D_k3 = dDdt(i + dt / 2, Ii + dt / 2 * I_k2)
+    
+    
+        S_k4 = dSdt(i + dt, Si + dt * S_k3, Ii + dt * I_k3)
+        E_k4 = dEdt(i + dt, Si + dt * S_k3, Ii + dt * I_k3, Ei + dt * E_k3)
+        I_k4 = dIdt(i + dt, Ei + dt * E_k3, Ii + dt * I_k3)
+        R_k4 = dRdt(i + dt, Ii + dt * I_k3)
+        D_k4 = dDdt(i + dt, Ii + dt * I_k3)
+        
+    
+
+        S[i + 1] = Si + dt / 6 * (S_k1 + 2 * S_k2 + 2 * S_k3 + S_k4)
+        E[i + 1] = Ei + dt / 6 * (E_k1 + 2 * E_k2 + 2 * E_k3 + E_k4)
+        I[i + 1] = Ii + dt / 6 * (I_k1 + 2 * I_k2 + 2 * I_k3 + I_k4)
+        R[i + 1] = Ri + dt / 6 * (R_k1 + 2 * R_k2 + 2 * R_k3 + R_k4)
+        D[i + 1] = Di + dt / 6 * (D_k1 + 2 * D_k2 + 2 * D_k3 + D_k4)
+        
+    Alpha_over_time = [s * I[i]/N + alpha_opt for i in range(len(S))]  # to plot alpha over time
+    R0_time = [logistic_R_0(i) for i in range(len(S))]                 # how R varies over time
+        
+    plt.plot(t,I,label='Infected',color='r',linewidth=3)
+    plt.plot(t,R,label='Recovered',color='cyan',linewidth=3)
+    plt.plot(t,E,label='Exposed',color='purple',linewidth=3)
+    plt.plot(t,D,label='Dead',color='b',linewidth=3)
+    plt.plot(t,S,label='Susceptible',color='y',linewidth=3)
+    plt.legend(loc='best')
+    plt.title("Lockdown after 40 days with age analysis s=1",loc='center')
+    plt.xlabel('Number of Days')
+    plt.ylabel('Population')
+    plt.show()
+    plt.plot(t,Alpha_over_time,color='brown',label='Alpha',linewidth=3)
+    plt.title('Mortality rate over time, s=1')
+    plt.xlabel('Number of Days')
+    plt.ylabel('Valuer of Alpha')
+    plt.legend(loc='best')
+    plt.show()
+    plt.plot(t,R0_time,color='green',label='R0',linewidth=3)
+    plt.title('Reproduction number over time')
+    plt.xlabel('Number of Days')
+    plt.ylabel('Valuer of R')
+    plt.legend(loc='best')
+    plt.show()
+    
+
+RK4SIR(n, gamma, delta, rho, S0, I0, R0, E0, D0, 1)
+
+
+
