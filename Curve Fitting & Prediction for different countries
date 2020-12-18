@@ -1,0 +1,82 @@
+# printing the actual data of the countries-- Russia, Italy, United Kingdom, USA, India
+import numpy as np                       
+import math                             
+import scipy as sp
+import xlrd
+%matplotlib inline
+import matplotlib.pyplot as plt
+from scipy.optimize import curve_fit
+loc=("C:\\Users\\DELL\\Desktop\\corona data.xlsx")          # The excel sheet containing data is located on Desktop      
+wb=xlrd.open_workbook(loc)
+sheet=wb.sheet_by_index(0)
+sheet.cell_value(0,0)
+n=sheet.ncols-1
+print("no.of data points=",n) 
+time=0
+infected1=[]
+infrate1=[]
+infected2=[]
+infrate2=[]
+infected3=[]
+infrate3=[]
+infected4=[]
+infrate4=[]
+infected5=[]
+infrate5=[]
+t=[]
+for i in range(35,n):
+    Ip1=float(sheet.cell_value(0,i))-float(sheet.cell_value(0,i-1))
+    I1=float(sheet.cell_value(0,i))
+    Ip2=float(sheet.cell_value(1,i))-float(sheet.cell_value(1,i-1))
+    I2=float(sheet.cell_value(1,i))
+    Ip3=float(sheet.cell_value(2,i))-float(sheet.cell_value(2,i-1))
+    #print(Ip3,i)
+    I3=float(sheet.cell_value(2,i))
+    Ip4=float(sheet.cell_value(3,i))-float(sheet.cell_value(3,i-1))
+    I4=float(sheet.cell_value(3,i))
+    Ip5=float(sheet.cell_value(4,i))-float(sheet.cell_value(4,i-1))
+    I5=float(sheet.cell_value(4,i))
+    time+=1
+    infrate1.append((Ip1))
+    infected1.append((I1))
+    infrate2.append((Ip2))
+    infected2.append((I2))
+    infrate3.append((Ip3))
+    infected3.append((I3))
+    infrate4.append((Ip4))
+    infected4.append((I4))
+    infrate5.append((Ip5))
+    infected5.append((I5))
+    t.append((time))
+fig,ax = plt.subplots(nrows=2, ncols=4, sharex=True, figsize=(20,10))
+ax[0][0].scatter(t,infected1,label='INFECTED', color="red")
+ax[0][0].set(title="Russia",ylabel='population',xlabel='no. of days')
+ax[0][0].legend(loc="best",shadow="true")
+ax[1][0].bar(t,infrate1,label='PER DAY INFECTED', color="black")
+ax[1][0].set(ylabel='population',xlabel='number of days')
+ax[1][0].legend(loc="best",shadow="true")
+ax[0][1].scatter(t,infected2,label='INFECTED', color="red")
+ax[0][1].set(title="Italy",xlabel='no of days')
+ax[0][1].legend(loc="best",shadow="true")
+ax[1][1].bar(t,infrate2,label='PER DAY INFECTED', color="black")
+ax[1][1].set(ylabel='population',xlabel='number of days')
+ax[1][1].legend(loc="best",shadow="true")
+ax[0][2].scatter(t,infected3,label='INFECTED', color="red")
+ax[0][2].set(title="UK",xlabel='no.of days')
+ax[0][2].legend(loc="best",shadow="true")
+ax[1][2].bar(t,infrate3,label='PER DAY INFECTED', color="black")
+ax[1][2].set(ylabel='population',xlabel='number of days')
+ax[1][2].legend(loc="best",shadow="true")
+ax[0][3].scatter(t,infected4,label='INFECTED', color="red")
+ax[0][3].set(title="USA",xlabel='no. of days')
+ax[0][3].legend(loc="best",shadow="true")
+ax[1][3].bar(t,infrate4,label='PER DAY INFECTED', color="black")
+ax[1][3].set(ylabel='population',xlabel='number of days')
+ax[1][3].legend(loc="best",shadow="true")
+fig,ax5 = plt.subplots(nrows=2, ncols=1, sharex=True, figsize=(10,7))
+fig.suptitle("Data for INDIA",fontsize=20,fontstyle='italic')
+ax5[0].scatter(t,infected5, color="red")
+ax5[0].set(title="total infected cases (22/03/20 to 24/05/20)- India",xlabel='days',ylabel='no.of people')
+ax5[1].bar(t,infrate5, color="black")
+ax5[1].set(title="new infected cases (22/03/20 to 24/05/20)- India ",xlabel='days',ylabel='no.of people')
+plt.show()
