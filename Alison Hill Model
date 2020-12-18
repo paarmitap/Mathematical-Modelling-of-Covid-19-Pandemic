@@ -1,0 +1,118 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+N=1000000
+b1=0.500
+b2=0.100
+b3=0.100
+delta=0.200
+g1=0.133
+g2=0.125
+g3=0.060
+p1=0.033
+p2=0.042
+mu=0.05
+n=200
+t=np.linspace(0,n,n)
+
+def RK4(n, S0, E0, I1_0, I2_0, I3_0, R0, D0, dt = 1):
+     
+    S = np.empty(n)
+    I1 = np.empty(n)
+    I2 = np.empty(n)
+    I3 = np.empty(n)
+    R = np.empty(n)
+    E = np.empty(n)
+    D = np.empty(n)
+    S[0],I1[0],I2[0],I3[0],R[0],E[0],D[0]=S0,I1_0,I2_0,I3_0,R0,E0,D0
+    
+    def dSdt(t, S, I1, I2, I3):
+        return(-(S/N)*(b1*I1 +b2*I2 +b3*I3))
+
+    def dEdt(t, S, I1, I2, I3, E):
+        return ( (S/N)*(b1*I1 +b2*I2 +b3*I3) - delta * E)
+    
+    def dI1dt(t, E, I1):
+       return( delta * E - (g1+p1)*I1)
+   
+    def dI2dt(t, I1, I2):
+       return( p1*I1 - (g2+p2)*I2)
+   
+    def dI3dt(t, I2, I3):
+       return( p2*I2 - (g3+mu)*I3)
+
+    def dRdt(t, I1,I2,I3): 
+        return((g1*I1 + g2*I2 + g3*I3))
+    
+    def dDdt(t,I3):
+        return(mu*I3)
+    
+    for i in range(0,n-1):
+        Si = S[i]
+        I1i = I1[i]
+        I2i = I2[i]
+        I3i = I3[i]
+        Ri = R[i]
+        Ei = E[i]
+        Di = D[i]
+            
+        S_k1 = dSdt(i, Si, I1i, I2i, I3i)
+        E_k1 = dEdt(t, Si, I1i, I2i, I3i , Ei)
+        I1_k1 = dI1dt(i, Ei, I1i)
+        I2_k1 = dI2dt(i, I1i, I2i)
+        I3_k1 = dI3dt(i, I2i, I3i)
+        R_k1 = dRdt(i, I1i, I2i, I3i)
+        D_k1 = dDdt(i, I3i)
+    
+        S_k2 = dSdt(i + dt / 2, Si + dt / 2 * S_k1, I1i + dt / 2 * I1_k1, I2i + dt / 2 * I2_k1, I3i + dt / 2 * I3_k1)
+        E_k2 = dEdt(i + dt / 2, Si + dt / 2 * S_k1, I1i + dt / 2 * I1_k1, I2i + dt / 2 * I2_k1, I3i + dt / 2 * I3_k1, Ei + dt / 2 * E_k1)
+        I1_k2 = dI1dt(i + dt / 2, Ei + dt / 2 * E_k1, I1i + dt / 2 * I1_k1)
+        I2_k2 = dI2dt(i + dt / 2, I1i + dt / 2 * I1_k1, I2i + dt / 2 * I2_k1)
+        I3_k2 = dI3dt(i + dt / 2, I2i + dt / 2 * I2_k1, I3i + dt / 2 * I3_k1)
+        R_k2 = dRdt(i + dt / 2, I1i + dt / 2 * I1_k1,  I2i + dt / 2 * I2_k1, I3i + dt / 2 * I3_k1)
+        D_k2 = dDdt(i + dt / 2, I3i + dt / 2 * I3_k1)
+    
+        S_k3 = dSdt(i + dt / 2, Si + dt / 2 * S_k2,I1i + dt / 2 * I1_k2, I2i + dt / 2 * I2_k2, I3i + dt / 2 * I3_k2)
+        E_k3 = dEdt(i + dt / 2, Si + dt / 2 * S_k2, I1i + dt / 2 * I1_k2, I2i + dt / 2 * I2_k2, I3i + dt / 2 * I3_k2, Ei + dt / 2 * E_k2)
+        I1_k3 = dI1dt(i + dt / 2, Ei + dt / 2 * E_k2, I1i + dt / 2 * I1_k2)
+        I2_k3 = dI2dt(i + dt / 2, I1i + dt / 2 * I1_k2, I2i + dt / 2 * I2_k2)
+        I3_k3 = dI3dt(i + dt / 2, I2i + dt / 2 * I2_k2, I3i + dt / 2 * I3_k2)
+        R_k3 = dRdt(i + dt / 2,  I1i + dt / 2 * I1_k2,  I2i + dt / 2 * I2_k2, I3i + dt / 2 * I3_k2)
+        D_k3 = dDdt(i + dt / 2, I3i + dt / 2 * I3_k2)
+    
+        S_k4 = dSdt(i + dt, Si + dt * S_k3, I1i + dt * I1_k3, I2i + dt * I2_k3, I3i + dt * I3_k3)
+        E_k4 = dEdt(i + dt, Si + dt * S_k3,  I1i + dt * I1_k3, I2i + dt * I2_k3, I3i + dt * I3_k3, Ei + dt * E_k3)
+        I1_k4 = dI1dt(i + dt, Ei + dt * E_k3, I1i + dt * I1_k3)
+        I2_k4 = dI2dt(i + dt, I1i + dt * I1_k3, I2i + dt * I2_k3)
+        I3_k4 = dI3dt(i + dt, I2i + dt * I2_k3, I3i + dt * I3_k3)
+        R_k4 = dRdt(i + dt,  I1i + dt * I1_k3, I2i + dt * I2_k3, I3i + dt * I3_k3)
+        D_k4 = dDdt(i + dt, I3i + dt * I3_k3)
+        
+        S[i + 1] = Si + dt / 6 * (S_k1 + 2 * S_k2 + 2 * S_k3 + S_k4)
+        E[i + 1] = Ei + dt / 6 * (E_k1 + 2 * E_k2 + 2 * E_k3 + E_k4)
+        I1[i + 1] = I1i + dt / 6 * (I1_k1 + 2 * I1_k2 + 2 * I1_k3 + I1_k4)
+        I2[i + 1] = I2i + dt / 6 * (I2_k1 + 2 * I2_k2 + 2 * I2_k3 + I2_k4)
+        I3[i + 1] = I3i + dt / 6 * (I3_k1 + 2 * I3_k2 + 2 * I3_k3 + I3_k4)
+        R[i + 1] = Ri + dt / 6 * (R_k1 + 2 * R_k2 + 2 * R_k3 + R_k4)
+        D[i + 1] = Di + dt / 6 * (D_k1 + 2 * D_k2 + 2 * D_k3 + D_k4)
+  
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+    ax.plot(t,S,label='Susceptible',color='lawngreen',linewidth=3)
+    ax.plot(t,E,label='Exposed',color='mediumpurple',linewidth=3)
+    ax.plot(t,I1,label='Mild Infected',color='red',linewidth=3)
+    ax.plot(t,I2,label='Severe  Infected',color='deeppink',linewidth=3)
+    ax.plot(t,I3,label='Critically Infected',color='orange',linewidth=3)
+    ax.plot(t,R,label='Recovered',color='blue',linewidth=3)
+    ax.plot(t,D,label='Dead',color='black',linewidth=2)
+    plt.legend(loc='best')
+    plt.title("ALLISON HILL MODEL",loc='center')
+    plt.xlabel('Time(Days)')
+    plt.ylabel('Population')
+    plt.show()
+    ax.set_xlim([0,150])
+    
+    #print(S[108],max(D),np.sum(I1)+np.sum(I2)+ np.sum(I3),max(E))
+
+
+RK4(n, N-1, 0, 1, 0, 0, 0, 0, 1)
