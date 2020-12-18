@@ -1,0 +1,61 @@
+#Vaccination camp
+#------------------------------------------------------
+import matplotlib.pyplot as plt
+import numpy as np
+import math
+R=5               #Reproduction no.
+g=5/14            #Recovery rate
+b=R*g             #Rate of infection
+#Factor determining fraction of susceptible people vaccinated
+def p(t):
+    if(t>6.24):
+        pi=0.005
+    else:
+        pi=0
+    return pi
+N=1000000         #Size of compartment/population
+v=1/50            #1/v is time taken to lose immunity
+
+#Differential equations governing vaccination process
+def f(S,I,R):
+    dSdt=-b*S*I/N-p(n)*S+v*R
+    dVdt=p(n)*S
+    dIdt=b*I*S/N-g*I
+    dRdt=g*I-v*R
+    return dSdt,dVdt,dIdt,dRdt
+y=[999999,1,1,0]
+k1=np.zeros(4)
+k2=np.zeros(4)
+k3=np.zeros(4)
+k4=np.zeros(4)
+n=100
+t=[]
+sm=[]
+vm=[]
+im=[]
+rm=[]
+#using RK4
+def SIR(y):
+    h=1
+    for i in range(n):
+        sm.append(y[0])
+        vm.append(y[1])
+        im.append(y[2])
+        rm.append(y[3])
+        t.append(i)
+        k1[0],k1[1],k1[2],k1[3]=(f(y[0],y[2],y[3]))
+        k2[0],k2[1],k2[2],k2[3]=f(y[0]+k1[0]*(h/2),y[2]+(k1[2]*h/2),y[3]+(k1[2]*h/2))
+        k3[0],k3[1],k3[2],k3[3]=f(y[0]+k2[0]*(h/2),y[2]+(k2[2]*h/2),y[3]+(k2[2]*h/2))
+        k4[0],k4[1],k4[2],k4[3]=f(y[0]+k3[0]*h,y[2]+(k3[2]*h),y[3]+(k3[2]*h))
+        y=y+(k1+2*k2+2*k3+k4)*h/6
+    return y
+print(SIR(y))
+plt.plot(t, sm, label='$susceptible$ ',color='green',linewidth=3) # plotting t, n_S separately 
+plt.plot(t, vm, label='$vaccinated$ ',color='yellow',linewidth=3) # plotting t, n_V separately 
+plt.plot(t, im, label='$infected$ ',color='red',linewidth=3) # plotting t, n_I separately 
+plt.plot(t, rm, label='$recovered$ ',color='blue',linewidth=3) # plotting t, n_R separately 
+plt.legend(loc='best')
+plt.xlabel('Time(Days)')
+plt.ylabel('Population')
+plt.title('Vaccination campaign(SIR MODEL)')
+plt.show()
