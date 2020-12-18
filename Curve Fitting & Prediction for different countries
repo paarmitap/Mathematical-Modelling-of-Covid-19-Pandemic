@@ -34,6 +34,7 @@ for i in range(35,n):
     I3=float(sheet.cell_value(2,i))
     Ip4=float(sheet.cell_value(3,i))-float(sheet.cell_value(3,i-1))
     I4=float(sheet.cell_value(3,i))
+   
     Ip5=float(sheet.cell_value(4,i))-float(sheet.cell_value(4,i-1))
     I5=float(sheet.cell_value(4,i))
     time+=1
@@ -79,4 +80,230 @@ ax5[0].scatter(t,infected5, color="red")
 ax5[0].set(title="total infected cases (22/03/20 to 24/05/20)- India",xlabel='days',ylabel='no.of people')
 ax5[1].bar(t,infrate5, color="black")
 ax5[1].set(title="new infected cases (22/03/20 to 24/05/20)- India ",xlabel='days',ylabel='no.of people')
+plt.show()
+
+
+
+### CURVE FITTING
+
+## fitting the logistic function to total infected cases
+
+import warnings
+warnings.filterwarnings("ignore")
+from scipy.optimize import curve_fit
+'''
+Function to fit. In this case logistic function:
+    f(x) = capacity / (1 + e^-k*(x - midpoint) )
+'''
+def fun(X, c, k, m):
+    y = c / (1 + np.exp(-k*(X-m)))
+    return y
+## Fit
+model1,cov = curve_fit(fun,t,infected1, p0=[np.max(infected1),1,1])
+model2,cov = curve_fit(fun,t,infected2, p0=[np.max(infected2),1,1])
+model3,cov = curve_fit(fun,t,infected3, p0=[np.max(infected3),1,1],maxfev=2500)
+model4,cov = curve_fit(fun,t,infected4, p0=[np.max(infected4),1,1])
+model5,cov = curve_fit(fun,t,infected5, p0=[np.max(infected5),1,1],maxfev=1000)
+print("Parameter for different countries are:")
+print(model1,model2,model3,model4,model5)
+fig, ax = plt.subplots(nrows=2, ncols=2, sharex=True, figsize=(14,14))
+ax[0][0].scatter(t,infected1,label="actual data" ,color="black",lw=5)
+ax[0][0].plot(t,fun(t,*model1),label="fitted data", color="red",lw=5)
+ax[0][0].set(title='$Russia$',xlabel='days',ylabel='no.of people')
+ax[0][0].legend(loc="best",shadow="true")
+ax[0][1].scatter(t,infected2,label="actual data" ,color="black",lw=5)
+ax[0][1].plot(t,fun(t,*model2),label="fitted data", color="red",lw=5)
+ax[0][1].set(title='$Italy$',xlabel='days',ylabel='no.of people')
+ax[0][1].legend(loc="best",shadow="true")
+ax[1][0].scatter(t,infected3,label="actual data" ,color="black",lw=5)
+ax[1][0].plot(t,fun(t,*model3),label="fitted data", color="red",lw=5)
+ax[1][0].set(title='$UK$',xlabel='days',ylabel='no.of people')
+ax[1][0].legend(loc="best",shadow="true")
+ax[1][1].scatter(t,infected4,label="actual data" ,color="black",lw=5)
+ax[1][1].plot(t,fun(t,*model4),label="fitted data", color="red",lw=5)
+ax[1][1].set(title='$USA$',xlabel='days',ylabel='no.of people')
+ax[1][1].legend(loc="best",shadow="true")
+fig.suptitle("curve fitting for total no. of infected people (22/03/20 to 24/05/20)",fontsize=20,fontstyle='italic')
+fig, ax5 = plt.subplots(figsize=(10,5))
+ax5.scatter(t,infected5,label="actual data" ,color="black",lw=5)
+ax5.plot(t,fun(t,*model5),label="fitted data", color="red",lw=5)
+ax5.set(title='curve fitting for total no. of infected people (22/03/20 to 24/05/20)--India',xlabel='days',ylabel='no.of people')
+ax5.legend(loc="best",shadow="true")
+plt.show()
+
+## fitting the guassian to per day infected cases
+
+def f(X, a, b, c):
+    y = a * np.exp(-0.5 * ((X-b)/c)**2)
+    return y
+imodel1,cov1 = curve_fit(f,t,infrate1, p0=[1, np.mean(infrate1), np.std(infrate1)])
+imodel2,cov1 = curve_fit(f,t,infrate2, p0=[1, np.mean(infrate2), np.std(infrate2)])
+imodel3,cov1 = curve_fit(f,t,infrate3, p0=[1, np.mean(infrate3), np.std(infrate3)])
+imodel4,cov1 = curve_fit(f,t,infrate4, p0=[1, np.mean(infrate4), np.std(infrate4)],maxfev=3000)
+imodel5,cov1 = curve_fit(f,t,infrate5, p0=[1, np.mean(infrate5), np.std(infrate5)])
+print(imodel1,imodel2,imodel3,imodel4,imodel5)
+fig, ax = plt.subplots(nrows=2, ncols=2, sharex=True, figsize=(15,15))
+ax[0][0].bar(t,infrate1,label="actual  infected per day data" ,color="black")
+ax[0][0].set(title='$Russia$',xlabel='days',ylabel='no.of people')
+ax[0][0].plot(t,f(t,*imodel1),label="fitted data", color="red",lw=8)
+ax[0][0].legend(loc="best",shadow="true")
+ax[0][1].bar(t,infrate2,label="actual  infected per day data" ,color="black")
+ax[0][1].plot(t,f(t,*imodel2),label="fitted data", color="red",lw=8)
+ax[0][1].set(title='$Italy$',xlabel='days',ylabel='no.of people')
+ax[0][1].legend(loc="best",shadow="true")
+ax[1][0].bar(t,infrate3,label="actual  infected per day data" ,color="black")
+ax[1][0].set(title='$UK$',xlabel='days',ylabel='no.of people')
+ax[1][0].plot(t,f(t,*imodel3),label="fitted data", color="red",lw=8)
+ax[1][0].legend(loc="best",shadow="true")
+ax[1][1].bar(t,infrate4,label="actual  infected per day data" ,color="black")
+ax[1][1].plot(t,f(t,*imodel4),label="fitted data", color="red",lw=8)
+ax[1][1].set(title='$USA$',xlabel='days',ylabel='no.of people')
+ax[1][1].legend(loc="best",shadow="true")
+fig.suptitle("curve fitting for no. of infected people per day (22/03/20 to 24/05/20)",fontsize=20,fontstyle='italic')
+fig, ax5 = plt.subplots(figsize=(10,5))
+ax5.bar(t,infrate5,label="actual  infected per day data" ,color="black")
+ax5.plot(t,f(t,*imodel5),label="fitted data", color="red",lw=8)
+ax5.set(title='curve fitting for per day infected people (22/03/20 to 24/05/20)--India',xlabel='days',ylabel='no.of people')
+ax5.legend(loc="best",shadow="true")
+plt.show()
+
+## PREDICTIONS
+## for total infected cases
+tnew=[]
+tnew1=[]
+tnew2=[]
+tnew3=[]
+tn=0
+for i in range(len(t)+180):                      ##predicting for next 60 days
+    tn+=1
+    if(i<(len(t)+60)):
+        tnew.append((tn))
+    if(i<(len(t)+90)):
+        tnew1.append((tn))
+    if(i<len(t)+120):
+        tnew2.append((tn))
+    if(i<len(t)+180):
+        tnew3.append((tn))
+predict1=fun(tnew,*model1)
+predict2=fun(tnew,*model2)
+predict3=fun(tnew,*model3)
+predict4=fun(tnew,*model4)
+predict51=fun(tnew,*model5)
+predict52=fun(tnew1,*model5)
+predict53=fun(tnew2,*model5)
+predict54=fun(tnew3,*model5)
+fig, ax = plt.subplots(nrows=2, ncols=2, sharex=True, figsize=(14,14))
+ax[0][0].scatter(t,infected1,label="actual data" ,color="black",lw=5)
+ax[0][0].scatter(t,fun(t,*model1),label="fitted data", color="red",lw=5)
+ax[0][0].set(title='$Russia$',xlabel='days',ylabel='no.of people')
+ax[0][0].plot(tnew,predict1,label="predicted data", color="blue",lw=4)
+ax[0][0].legend(loc="best",shadow="true")
+ax[0][1].scatter(t,infected2,label="actual data" ,color="black",lw=5)
+ax[0][1].scatter(t,fun(t,*model2),label="fitted data", color="red",lw=5)
+ax[0][1].plot(tnew,predict2,label="predicted data", color="blue",lw=4)
+ax[0][1].set(title='$Italy$',xlabel='days',ylabel='no.of people')
+ax[0][1].legend(loc="best",shadow="true")
+ax[1][0].scatter(t,infected3,label="actual data" ,color="black",lw=5)
+ax[1][0].scatter(t,fun(t,*model3),label="fitted data", color="red",lw=5)
+ax[1][0].plot(tnew,predict3,label="predicted data", color="blue",lw=4)
+ax[1][0].set(title='$UK$',xlabel='days',ylabel='no.of people')
+ax[1][0].legend(loc="best",shadow="true")
+ax[1][1].scatter(t,infected4,label="actual data" ,color="black",lw=5)
+ax[1][1].scatter(t,fun(t,*model4),label="fitted data", color="red",lw=5)
+ax[1][1].plot(tnew,predict4,label="predicted data", color="blue",lw=4)
+ax[1][1].set(title='$USA$',xlabel='days',ylabel='no.of people')
+ax[1][1].legend(loc="best",shadow="true")
+fig.suptitle("'Prediction for total no. of infected people  for next two months (24 may 2020 onwards)",fontsize=20,fontstyle='italic')
+fig, ax5 = plt.subplots(nrows=2, ncols=2, sharex=True,figsize=(15,15))
+fig.suptitle("'Prediction for total no. of infected people in India (24 may 2020 onwards)",fontsize=20,fontstyle='italic')
+ax5[0][0].scatter(t,infected5,label="actual data" ,color="black")
+ax5[0][0].scatter(t,fun(t,*model5),label="fitted data",color="red",lw=6)
+ax5[0][0].plot(tnew,predict51,label="predicted data", color="blue",lw=4)
+ax5[0][0].set(title='next two month (24 may 2020 to 24 july 2020)',xlabel='days',ylabel='no.of people')
+ax5[0][0].legend(loc="best",shadow="true")
+ax5[0][1].scatter(t,infected5,label="actual data" ,color="black")
+ax5[0][1].scatter(t,fun(t,*model5),label="fitted data",color="red",lw=6)
+ax5[0][1].plot(tnew1,predict52,label="predicted data", color="blue",lw=4)
+ax5[0][1].set(title=' next three month (24 may 2020 to 24 August 2020)',xlabel='days',ylabel='no.of people')
+ax5[0][1].legend(loc="best",shadow="true")
+ax5[1][0].scatter(t,infected5,label="actual data" ,color="black")
+ax5[1][0].scatter(t,fun(t,*model5),label="fitted data",color="red",lw=6)
+ax5[1][0].plot(tnew2,predict53,label="predicted data", color="blue",lw=4)
+ax5[1][0].set(title='for next four month (24 may 2020 to 24 september 2020)',xlabel='days',ylabel='no.of people')
+ax5[1][0].legend(loc="best",shadow="true")
+ax5[1][1].scatter(t,infected5,label="actual data" ,color="black")
+ax5[1][1].scatter(t,fun(t,*model5),label="fitted data",color="red",lw=6)
+ax5[1][1].plot(tnew3,predict54,label="predicted data", color="blue",lw=4)
+ax5[1][1].set(title='for next six month (24 may 2020 to 24 november 2020)',xlabel='days',ylabel='no.of people')
+ax5[1][1].legend(loc="best",shadow="true")
+plt.show()
+## PREDICTIONS
+## for total infected cases
+tnew=[]
+tnew1=[]
+tnew2=[]
+tnew3=[]
+tn=0
+for i in range(len(t)+360):                      
+    tn+=1
+    if(i<(len(t)+60)):                          ##predicting for next two months for India and other countries
+        tnew.append((tn))
+    if(i<(len(t)+90)):                         ##predicting for next three months for india
+        tnew1.append((tn))                     
+    if(i<len(t)+180):                         ##predicting for next six months for india                 
+        tnew2.append((tn))
+    if(i<len(t)+360):                          ##predicting for next one year for india
+        tnew3.append((tn))
+ipredict1=f(tnew,*imodel1)
+ipredict2=f(tnew,*imodel2)
+ipredict3=f(tnew,*imodel3)
+ipredict4=f(tnew,*imodel4)
+ipredict51=f(tnew,*imodel5)
+ipredict52=f(tnew1,*imodel5)
+ipredict53=f(tnew2,*imodel5)
+ipredict54=f(tnew3,*imodel5)
+fig, ax = plt.subplots(nrows=2, ncols=2, sharex=True, figsize=(16,16))
+ax[0][0].bar(t,infrate1,label="actual  infected per day data" ,color="black")
+ax[0][0].set(title='$Russia$',xlabel='days',ylabel='no.of people')
+ax[0][0].scatter(t,f(t,*imodel1),label="fitted data", color="red",lw=8)
+ax[0][0].plot(tnew,ipredict1,label="prediction for infected per day data", color="blue",lw=6)
+ax[0][0].legend(loc="best",shadow="true")
+ax[0][1].bar(t,infrate2,label="actual  infected per day data" ,color="black")
+ax[0][1].scatter(t,f(t,*imodel2),label="fitted data", color="red",lw=8)
+ax[0][1].plot(tnew,ipredict2,label="prediction for infected per day data", color="blue",lw=6)
+ax[0][1].set(title='$Italy$',xlabel='days',ylabel='no.of people')
+ax[0][1].legend(loc="best",shadow="true")
+ax[1][0].bar(t,infrate3,label="actual  infected per day data" ,color="black")
+ax[1][0].set(title='$UK$',xlabel='days',ylabel='no.of people')
+ax[1][0].scatter(t,f(t,*imodel3),label="fitted data", color="red",lw=8)
+ax[1][0].plot(tnew,ipredict3,label="prediction for infected per day data", color="blue",lw=6)
+ax[1][0].legend(loc="best",shadow="true")
+ax[1][1].bar(t,infrate4,label="actual  infected per day data" ,color="black")
+ax[1][1].scatter(t,f(t,*imodel4),label="fitted data", color="red",lw=8)
+ax[1][1].plot(tnew,ipredict4,label="prediction for infected per day data", color="blue",lw=6)
+ax[1][1].set(title='$USA$',xlabel='days',ylabel='no.of people')
+ax[1][1].legend(loc="best",shadow="true")
+fig.suptitle("Prediction for no. of infected people per day for next two months (22 may 2020 onwards)",fontsize=20,fontstyle='italic')
+fig, ax5 = plt.subplots(nrows=2, ncols=2, sharex=True,figsize=(13,13))
+fig.suptitle("'Prediction for per day infected people in India (24 may 2020 onwards)",fontsize=20,fontstyle='italic')
+ax5[0][0].bar(t,infrate5,label="actual data" ,color="black")
+ax5[0][0].scatter(t,f(t,*imodel5),label="fitted data",color="red",lw=6)
+ax5[0][0].plot(tnew,ipredict51,label="predicted data", color="blue",lw=4)
+ax5[0][0].set(title='next two month (24 may 2020 to 24 july 2020)',xlabel='days',ylabel='no.of people')
+ax5[0][0].legend(loc="best",shadow="true")
+ax5[0][1].bar(t,infrate5,label="actual data" ,color="black")
+ax5[0][1].scatter(t,f(t,*imodel5),label="fitted data",color="red",lw=6)
+ax5[0][1].plot(tnew1,ipredict52,label="predicted data", color="blue",lw=4)
+ax5[0][1].set(title=' next three month (24 may 2020 to 24 August 2020)',xlabel='days',ylabel='no.of people')
+ax5[0][1].legend(loc="best",shadow="true")
+ax5[1][0].bar(t,infrate5,label="actual data" ,color="black")
+ax5[1][0].scatter(t,f(t,*imodel5),label="fitted data",color="red",lw=6)
+ax5[1][0].plot(tnew2,ipredict53,label="predicted data", color="blue",lw=4)
+ax5[1][0].set(title='for next six month (24 may 2020 to 24 september 2020)',xlabel='days',ylabel='no.of people')
+ax5[1][0].legend(loc="best",shadow="true")
+ax5[1][1].bar(t,infrate5,label="actual data" ,color="black")
+ax5[1][1].scatter(t,f(t,*imodel5),label="fitted data",color="red",lw=6)
+ax5[1][1].plot(tnew3,ipredict54,label="predicted data", color="blue",lw=4)
+ax5[1][1].set(title='for next one year (24 may 2020 to 24 november 2020)',xlabel='days',ylabel='no.of people')
+ax5[1][1].legend(loc="best",shadow="true")
 plt.show()
