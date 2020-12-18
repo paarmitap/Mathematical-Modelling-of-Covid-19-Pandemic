@@ -1,0 +1,89 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+N = 1_000_000
+D = 14 # infections lasts 14 days
+gamma = 1.0 / D
+delta = 1.0 / 6  # incubation period of six days
+R_0 = 5.0
+alpha = 0.05  #  death rate
+beta = R_0 * (gamma + alpha) # R_0 = beta / gamma+alpha
+
+rho = 1/9  # 9 days from infection until death
+S0, E0, I0, R0, D0 = N-100, 100, 0, 0, 0  # initial conditions
+n=200
+t=[x for x in range(n)] # no of days
+
+def RK4(n, beta, gamma, delta, alpha, rho, S0, E0, I0, R0, D0, dt = 1):
+     
+    S=np.empty(n)
+    I=np.empty(n)
+    R=np.empty(n)
+    E=np.empty(n)
+    D=np.empty(n)
+    S[0],I[0],R[0],E[0],D[0]=S0,I0,R0,E0,D0
+    
+    def dSdt(t, S, I):
+        return(-beta * S * I / N)
+
+    def dEdt(t, S, I, E):
+        return ( (beta * S * I / N) - delta * E)
+    
+    def dIdt(t, E, I):
+       return( delta * E - (1 - alpha) * gamma * I - alpha * rho * I)
+
+    def dRdt(t, I): 
+        return( (1 - alpha) * gamma * I)
+    
+    def dDdt(t,I):
+        return( alpha * rho * I)
+  
+    for i in range(0,n-1):
+        Si = S[i]
+        Ii = I[i]
+        Ri = R[i]
+        Ei = E[i]
+        Di = D[i]
+
+        S_k1 = dSdt(i, Si, Ii)
+        E_k1 = dEdt(t, Si, Ii, Ei)
+        I_k1 = dIdt(i, Ei, Ii)
+        R_k1 = dRdt(i, Ii)
+        D_k1 = dDdt(i, Ii)
+        
+        S_k2 = dSdt(i + dt / 2, Si + dt / 2 * S_k1, Ii + dt / 2 * I_k1)
+        E_k2 = dEdt(i + dt / 2, Si + dt / 2 * S_k1, Ii + dt / 2 * I_k1, Ei + dt / 2 * E_k1)
+        I_k2 = dIdt(i + dt / 2, Ei + dt / 2 * E_k1, Ii + dt / 2 * I_k1)
+        R_k2 = dRdt(i + dt / 2, Ii + dt / 2 * I_k1)
+        D_k2 = dDdt(i + dt / 2, Ii + dt / 2 * I_k1)
+    
+        S_k3 = dSdt(i + dt / 2, Si + dt / 2 * S_k2, Ii + dt / 2 * I_k2)
+        E_k3 = dEdt(i + dt / 2, Si + dt / 2 * S_k2, Ii + dt / 2 * I_k2, Ei + dt / 2 * E_k2)
+        I_k3 = dIdt(i + dt / 2, Ei + dt / 2 * E_k2, Ii + dt / 2 * I_k2)
+        R_k3 = dRdt(i + dt / 2, Ii + dt / 2 * I_k2)
+        D_k3 = dDdt(i + dt / 2, Ii + dt / 2 * I_k2)
+    
+        S_k4 = dSdt(i + dt, Si + dt * S_k3, Ii + dt * I_k3)
+        E_k4 = dEdt(i + dt, Si + dt * S_k3, Ii + dt * I_k3, Ei + dt * E_k3)
+        I_k4 = dIdt(i + dt, Ei + dt * E_k3, Ii + dt * I_k3)
+        R_k4 = dRdt(i + dt, Ii + dt * I_k3)
+        D_k4 = dDdt(i + dt, Ii + dt * I_k3)
+    
+        S[i + 1] = Si + dt / 6 * (S_k1 + 2 * S_k2 + 2 * S_k3 + S_k4)
+        E[i + 1] = Ei + dt / 6 * (E_k1 + 2 * E_k2 + 2 * E_k3 + E_k4)
+        I[i + 1] = Ii + dt / 6 * (I_k1 + 2 * I_k2 + 2 * I_k3 + I_k4)
+        R[i + 1] = Ri + dt / 6 * (R_k1 + 2 * R_k2 + 2 * R_k3 + R_k4)
+        D[i + 1] = Di + dt / 6 * (D_k1 + 2 * D_k2 + 2 * D_k3 + D_k4)
+
+    plt.plot(t,S,label='Susceptible',color='lawngreen',linewidth=3)    
+    plt.plot(t,I,label='Infected',color='crimson',linewidth=3)
+    plt.plot(t,R,label='Recovered',color='orange',linewidth=3)
+    plt.plot(t,E,label='Exposed',color='darkgreen',linewidth=3)
+    plt.plot(t,D,label='Dead', color="blue",linewidth=3)
+    plt.legend(loc='best')
+    plt.title("SEIRD Model using RK4",loc='center')
+    plt.xlabel('Time(days)')
+    plt.ylabel('Population')
+    plt.show()
+
+RK4(n, beta,gamma,delta,alpha,rho, N-1, 1, 0, 0 ,0, 1)
