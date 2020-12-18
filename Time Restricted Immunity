@@ -1,0 +1,45 @@
+#Time Restricted immunity :
+import matplotlib.pyplot as plt
+import numpy as np
+R=5
+g=5/14
+b=R*g
+v=1/50                  #1/v is typical time to lose immunity
+N=1000000
+def f(S,I,R):
+    dSdt=-b*I*S/N+v*R
+    dIdt=b*I*S/N-g*I
+    dRdt=g*I-v*R
+    return dSdt,dIdt,dRdt
+y=[999999,1,0]
+k1=np.zeros(3)
+k2=np.zeros(3)
+k3=np.zeros(3)
+k4=np.zeros(3)
+n=100
+t=[]
+sm=[]
+im=[]
+rm=[]
+def SIR(y):
+    h=1
+    for i in range(n):
+        sm.append(y[0])
+        im.append(y[1])
+        rm.append(y[2])
+        t.append(i)
+        k1[0],k1[1],k1[2]=(f(y[0],y[1],y[2]))
+        k2[0],k2[1],k2[2]=f(y[0]+k1[0]*(h/2),y[1]+(k1[1]*h/2),y[2]+(k1[2]*h/2))
+        k3[0],k3[1],k3[2]=f(y[0]+k2[0]*(h/2),y[1]+(k2[1]*h/2),y[2]+(k2[2]*h/2))
+        k4[0],k4[1],k4[2]=f(y[0]+k3[0]*h,y[1]+k3[1]*h,y[2]+k3[2]*h)
+        y=y+(k1+2*k2+2*k3+k4)*h/6
+    return y
+print(SIR(y))
+plt.plot(t, sm, label='$susceptible$ ',color='green',linewidth=3) # plotting t, n_S separately 
+plt.plot(t, im, label='$infected$ ',color='red',linewidth=3) # plotting t, n_I separately 
+plt.plot(t, rm, label='$recovered$ ',color='blue',linewidth=3) # plotting t, n_R separately 
+plt.legend(loc='best')
+plt.xlabel('Time(Days)')
+plt.ylabel('Population')
+plt.title('Time Restricted immunity')
+plt.show()
