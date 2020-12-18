@@ -1,0 +1,73 @@
+# SIR MODEL
+# GILLISPIE ALGORITHM,ALPHA=5/14 & BETA=1/14
+import math                                           
+import random
+%matplotlib inline
+import matplotlib.pyplot as plt
+
+# Input parameters ####################
+
+# int; total population
+N = 1000000
+
+# float; maximum elapsed time
+T = 100.0
+
+# float; start time
+t = 0.0
+
+# float; rate of infection after contact
+_alpha = 0.357143
+# float; rate of cure
+_beta =  0.071429
+print("REPRODUCTION NO. OF THE DISEASE IS=",_alpha/_beta)
+
+# int; initial infected population
+n_I = 1
+
+#########################################
+
+# Compute susceptible population, set recovered to zero
+n_S = N - n_I
+n_R = 0
+
+# Initialize results list
+susceptible = []
+time = []
+infected=[]
+recovered=[]
+susceptible.append((n_S))
+infected.append((n_I))
+recovered.append((n_R))
+time.append((t))
+# Main loop
+while t < T:
+    if n_I == 0:
+        break
+
+    w1 =_alpha * n_S * n_I / N
+    w2 = _beta * n_I
+    W = w1 + w2
+
+    dt = -math.log(random.uniform(0.0, 1.0)) / W
+    t = t + dt
+
+    if random.uniform(0.0, 1.0) < w1 / W:
+        n_S = n_S - 1
+        n_I = n_I + 1
+    else:
+        n_I = n_I - 1
+        n_R = n_R + 1
+    susceptible.append((n_S))
+    infected.append((n_I))
+    recovered.append((n_R))  
+    time.append((t))
+#print(time)
+plt.plot(time,susceptible,label='susceptible data',color='green',linewidth=3)
+plt.plot(time,infected,label='infected data',color='red',linewidth=3)
+plt.plot(time,recovered,label='recovered data',color='blue',linewidth=3)
+plt.legend(loc='best')
+plt.xlabel('x-axis')
+plt.ylabel('y-axis')
+plt.title('SIR MODEL-gillispie model')
+plt.show()
