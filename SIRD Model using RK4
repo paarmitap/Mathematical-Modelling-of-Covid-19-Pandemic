@@ -1,0 +1,59 @@
+#SIRD MODEL
+#VIA RK-4 
+import numpy as np
+import scipy as sp
+import math
+import random
+%matplotlib inline
+import matplotlib.pyplot as plt
+R0=5.00
+print("The reproduction no. is=",R0)
+D=14
+print("NO.of days taken for recovery is=",D)
+N=1000000
+gamma=1/D
+mu=(3*gamma)/100
+beta=(gamma+mu)*R0
+print("THE COEFFICIENTS are:beta=",beta,", gamma",gamma,", mu",mu)
+susceptible = []
+time = []
+infected=[]
+recovered=[]
+deaths=[]
+y=[0,999999,1,0,0]
+susceptible.append((y[1]))
+infected.append((y[2]))
+recovered.append((y[3]))
+deaths.append((y[4]))
+time.append((y[0]))
+der=np.zeros(5)
+def derivative(y1):
+    der[0]=1
+    der[1]=-(beta*y1[2]*y1[1])/N
+    der[2]=((beta*y1[2]*y1[1])/N)-((gamma+mu)*y1[2])
+    der[3]=gamma*y1[2]
+    der[4]=mu*y1[2]
+    return der
+h=1
+T=150
+while(y[0]<T):
+    y_temp=y
+    k1=derivative(y_temp)
+    k2=derivative(y_temp+(h/2)*k1)
+    k3=derivative(y_temp+(h*k2)/2)
+    k4=derivative(y_temp+(h*k3))
+    y=y+(h*(k1+2*k2+2*k3+k4)/6)
+    time.append((y[0]))
+    susceptible.append((y[1]))
+    infected.append((y[2]))
+    recovered.append((y[3]))
+    deaths.append((y[4]))
+plt.plot(time,susceptible,label='susceptible data',color='green',linewidth=3)
+plt.plot(time,infected,label='infected data',color='red',linewidth=3)
+plt.plot(time,recovered,label='recovered data',color='blue',linewidth=3)
+plt.plot(time,deaths,label='death data',color='brown',linewidth=3)
+plt.legend(loc='best')
+plt.xlabel('x-axis')
+plt.ylabel('y-axis')
+plt.title('The covid-19 data-SIRD MODEL( RK-4)')
+plt.show()
